@@ -21,7 +21,7 @@ pipeline{
     stage("Build & SonarQube analysis") {
             agent any
             steps {
-              withSonarQubeEnv('SonarSpring') {
+              withSonarQubeEnv('sonar-teammanagement') {
                 sh 'java -version'
                 sh 'mvn clean package sonar:sonar'
               }
@@ -33,63 +33,8 @@ pipeline{
             }
         }
   
-    stage('collect artifact'){
-     steps{
-     archiveArtifacts artifacts: 'target/*.jar', followSymlinks: false
-     }
-     }
-     stage('deploy to artifactory')
-     {
-     steps{
-     
-     rtUpload (
-    serverId: 'ARTIFACTORY_SERVER',
-    spec: '''{
-          "files": [
-            {
-              "pattern": "target/*.jar",
-              "target": "art-doc-dev-loc"
-            }
-         ]
-    }''',
- 
-    buildName: 'holyFrog',
-    buildNumber: '42'
-)
-     }}
-     stage('download from artifactory')
-         {
-            steps{
-     
-                rtDownload (
-                    serverId: 'ARTIFACTORY_SERVER',
-                    spec: '''{
-                    "files": [
-                         {
-                             "pattern": "art-doc-dev-loc/",
-                             "target": ""
-                        }
-                     ]
-                }''',
- 
-)
-     }}
-
-     stage("deploy to ec2"){
-       steps{
-            sshagent(['25b26cdc-1bf3-4293-baa3-e6af5a3c1005']){
-                    sh 'scp -r /var/jenkins_home/workspace/sonar-pipeline2/target/*.jar ubuntu@18.236.71.248:/home/ubuntu/artifact'
-        }
-       }
-     }
-    stage("deploy artifact to s3"){
-       steps{
-         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'deploytos3', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-            s3Upload(pathStyleAccessEnabled: true, payloadSigningEnabled: true,file:'TeamManagement-0.0.1-SNAPSHOT.jar', bucket:'cloud-095435475561-bucket', path:'var/jenkins_home/workspace/sonar-pipeline2/target/TeamManagement-0.0.1-SNAPSHOT.jar')
-       
-      }
-        }
-        }
+   
+    
      
      
        
