@@ -1,7 +1,7 @@
 pipeline{
   agent any  
     tools{
-      maven 'maven'
+      maven 'Maven-mine'
       jdk 'JDK11'
     }
   
